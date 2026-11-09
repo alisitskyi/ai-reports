@@ -61,5 +61,5 @@ git commit -m "Add report: [назва звіту]"
 git push origin main
 ```
 Після пушу повідоми користувачу 2 посилання на новий звіт:
-* `https://ai-reports-lovat.vercel.app/[slug]/`
+* `https://alysytskyi-reports.vercel.app/[slug]/`
 * `https://alysytskyi.netlify.app/[slug]/`

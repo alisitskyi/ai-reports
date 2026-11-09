@@ -5,7 +5,7 @@
 
 | Платформа | Посилання на головний портал | Звіт Google Ads (gemini_test_1) |
 | :--- | :--- | :--- |
-| **Vercel** | [ai-reports-lovat.vercel.app](https://ai-reports-lovat.vercel.app/) | [ai-reports-lovat.vercel.app/gemini_test_1/](https://ai-reports-lovat.vercel.app/gemini_test_1/) |
+| **Vercel** | [alysytskyi-reports.vercel.app](https://alysytskyi-reports.vercel.app/) | [alysytskyi-reports.vercel.app/gemini_test_1/](https://alysytskyi-reports.vercel.app/gemini_test_1/) |
 | **Netlify** | [alysytskyi.netlify.app](https://alysytskyi.netlify.app/) | [alysytskyi.netlify.app/gemini_test_1/](https://alysytskyi.netlify.app/gemini_test_1/) |
 
 ---
