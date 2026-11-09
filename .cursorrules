@@ -1,0 +1,7 @@
+# Cursor Rules for AI Reports Hub
+
+When creating or modifying reports:
+- Always put new reports in their own folder: `/[report_name]/index.html`.
+- Use self-contained HTML with Tailwind CSS CDN, Chart.js CDN, and dark mode theme (`bg-slate-950`).
+- Always register the new report on the root `index.html` hub by adding a card linking to `./[report_name]/`.
+- Commit and push to GitHub `main` branch to trigger live auto-deploy on Cloudflare, Vercel, and Netlify.
