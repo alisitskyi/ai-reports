@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Шаблон звіту / Дашборду</title>
+  <title>Шаблон звіту / Report Template</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SheetJS CDN (for Excel .xlsx export) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,73 +19,237 @@
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #090d16; }
     ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    @media print {
+      header, .no-print { display: none !important; }
+      body { background: #ffffff !important; color: #000000 !important; }
+      .bg-slate-900\/70, .bg-slate-900\/80 { background: #f8fafc !important; border: 1px solid #cbd5e1 !important; color: #0f172a !important; }
+      .text-white { color: #0f172a !important; }
+      .text-slate-400 { color: #475569 !important; }
+    }
   </style>
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 antialiased overflow-x-hidden">
+
   <!-- Шапка -->
   <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <a href="../" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Назад до хабу">
+        <a href="../" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="До каталогу / To Hub">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         </a>
         <div>
-          <h1 class="text-base sm:text-lg font-bold text-white tracking-tight">Назва нового звіту</h1>
-          <p class="text-xs text-slate-400">Короткий опис або період аналізу</p>
+          <h1 id="t-title" class="text-base sm:text-lg font-bold text-white tracking-tight">Аналітичний дашборд</h1>
+          <p id="t-subtitle" class="text-xs text-slate-400">Період звітності та опис показників</p>
         </div>
       </div>
-      <div>
-        <span class="text-xs px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium">
-          Дашборд
-        </span>
+
+      <!-- Кнопки керування: Мова та Експорт -->
+      <div class="flex items-center gap-3">
+        <!-- 1. Перемикач мови EN / UA -->
+        <div class="inline-flex p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button id="lang-ua" class="px-2.5 py-1 rounded-lg bg-sky-600 text-white transition">UA</button>
+          <button id="lang-en" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">EN</button>
+        </div>
+
+        <!-- 2. Меню експорту (CSV, EXCEL, PDF, JSON, MD) -->
+        <div class="relative">
+          <button id="exportDropdownBtn" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition shadow-sm">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span id="t-export">Експорт</span>
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+
+          <!-- Випадаючий список форматів -->
+          <div id="exportMenu" class="hidden absolute right-0 mt-2 w-44 rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-1 z-50 text-xs">
+            <button onclick="exportData('csv')" class="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center justify-between text-slate-200">
+              <span>CSV (.csv)</span>
+              <span class="text-[10px] text-slate-500 font-mono">Таблиця</span>
+            </button>
+            <button onclick="exportData('excel')" class="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center justify-between text-slate-200">
+              <span>Excel (.xlsx)</span>
+              <span class="text-[10px] text-emerald-400 font-mono">SheetJS</span>
+            </button>
+            <button onclick="exportData('pdf')" class="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center justify-between text-slate-200">
+              <span>PDF (.pdf)</span>
+              <span class="text-[10px] text-rose-400 font-mono">Друк</span>
+            </button>
+            <button onclick="exportData('json')" class="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center justify-between text-slate-200">
+              <span>JSON (.json)</span>
+              <span class="text-[10px] text-amber-400 font-mono">Дані</span>
+            </button>
+            <button onclick="exportData('md')" class="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center justify-between text-slate-200 border-t border-slate-800">
+              <span>Markdown (.md)</span>
+              <span class="text-[10px] text-sky-400 font-mono">Текст</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Основний контент -->
+  <!-- Основний вміст -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
     <!-- KPI Картки -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-        <span class="text-xs font-semibold text-slate-400 uppercase">Метрика 1</span>
-        <div class="mt-2 text-2xl font-bold text-white">0.00</div>
-        <p class="text-xs text-emerald-400 mt-1">+0% динаміка</p>
+      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-sm">
+        <span id="t-kpi1-label" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Сумарний дохід</span>
+        <div id="kpi1-value" class="mt-2 text-2xl font-bold text-white">$124,500.00</div>
+        <p class="text-xs text-emerald-400 mt-1">+14.2% vs мин. міс</p>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-        <span class="text-xs font-semibold text-slate-400 uppercase">Метрика 2</span>
-        <div class="mt-2 text-2xl font-bold text-white">0</div>
-        <p class="text-xs text-slate-400 mt-1">Опис показника</p>
+      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-sm">
+        <span id="t-kpi2-label" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Кількість замовлень</span>
+        <div id="kpi2-value" class="mt-2 text-2xl font-bold text-white">1,840</div>
+        <p class="text-xs text-slate-400 mt-1">Охоплення</p>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-        <span class="text-xs font-semibold text-slate-400 uppercase">Метрика 3</span>
-        <div class="mt-2 text-2xl font-bold text-white">0%</div>
-        <p class="text-xs text-slate-400 mt-1">Конверсія</p>
+      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-sm">
+        <span id="t-kpi3-label" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Середній чек (AOV)</span>
+        <div id="kpi3-value" class="mt-2 text-2xl font-bold text-amber-400">$67.66</div>
+        <p class="text-xs text-slate-400 mt-1">Ефективність</p>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-        <span class="text-xs font-semibold text-slate-400 uppercase">Метрика 4</span>
-        <div class="mt-2 text-2xl font-bold text-white">0</div>
-        <p class="text-xs text-slate-400 mt-1">Результат</p>
+      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-sm">
+        <span id="t-kpi4-label" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Конверсія</span>
+        <div id="kpi4-value" class="mt-2 text-2xl font-bold text-emerald-400">3.45%</div>
+        <p class="text-xs text-emerald-400 mt-1">+0.4% цільова дія</p>
       </div>
     </div>
 
     <!-- Графік -->
-    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
-      <h2 class="text-sm font-semibold text-white mb-4">Графік динаміки</h2>
+    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 id="t-chart-title" class="text-sm font-semibold text-white tracking-wide">Динаміка за місяцями</h2>
+          <p id="t-chart-subtitle" class="text-xs text-slate-400">Порівняння показників за останні 6 місяців</p>
+        </div>
+      </div>
       <div class="relative w-full h-80">
         <canvas id="mainChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Таблиця даних -->
+    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-sm space-y-3">
+      <h3 id="t-table-title" class="text-sm font-semibold text-white">Деталізація за категоріями</h3>
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table id="dataTable" class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950/70 text-slate-400 font-semibold">
+              <th id="th-category" class="py-3 px-4">Категорія</th>
+              <th id="th-revenue" class="py-3 px-4 text-right">Дохід ($)</th>
+              <th id="th-orders" class="py-3 px-4 text-right">Замовлення</th>
+              <th id="th-cr" class="py-3 px-4 text-right">Конверсія</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-800/60">
+            <!-- Генерується динамічно -->
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
 
   <script>
+    // Базові дані для демонстрації
+    const reportData = [
+      { category: "Електроніка / Electronics", revenue: 54200, orders: 780, cr: "3.8%" },
+      { category: "Одяг / Fashion", revenue: 38400, orders: 620, cr: "3.2%" },
+      { category: "Дім та сад / Home & Garden", revenue: 19800, orders: 290, cr: "2.9%" },
+      { category: "Спорт / Sports", revenue: 12100, orders: 150, cr: "3.5%" }
+    ];
+
+    // 1. ДВОМОВНІСТЬ (EN / UA)
+    let currentLang = 'ua';
+    const translations = {
+      ua: {
+        title: "Аналітичний дашборд",
+        subtitle: "Період звітності та опис показників",
+        export: "Експорт",
+        kpi1: "Сумарний дохід",
+        kpi2: "Кількість замовлень",
+        kpi3: "Середній чек (AOV)",
+        kpi4: "Конверсія",
+        chartTitle: "Динаміка за місяцями",
+        chartSubtitle: "Порівняння показників за останні 6 місяців",
+        tableTitle: "Деталізація за категоріями",
+        thCategory: "Категорія",
+        thRevenue: "Дохід ($)",
+        thOrders: "Замовлення",
+        thCr: "Конверсія"
+      },
+      en: {
+        title: "Analytics Dashboard",
+        subtitle: "Reporting period and metric overview",
+        export: "Export",
+        kpi1: "Total Revenue",
+        kpi2: "Total Orders",
+        kpi3: "Average Order Value",
+        kpi4: "Conversion Rate",
+        chartTitle: "Monthly Trends",
+        chartSubtitle: "Performance comparison over the last 6 months",
+        tableTitle: "Category Breakdown",
+        thCategory: "Category",
+        thRevenue: "Revenue ($)",
+        thOrders: "Orders",
+        thCr: "Conversion"
+      }
+    };
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+
+      document.getElementById('t-title').innerText = t.title;
+      document.getElementById('t-subtitle').innerText = t.subtitle;
+      document.getElementById('t-export').innerText = t.export;
+      document.getElementById('t-kpi1-label').innerText = t.kpi1;
+      document.getElementById('t-kpi2-label').innerText = t.kpi2;
+      document.getElementById('t-kpi3-label').innerText = t.kpi3;
+      document.getElementById('t-kpi4-label').innerText = t.kpi4;
+      document.getElementById('t-chart-title').innerText = t.chartTitle;
+      document.getElementById('t-chart-subtitle').innerText = t.chartSubtitle;
+      document.getElementById('t-table-title').innerText = t.tableTitle;
+      document.getElementById('th-category').innerText = t.thCategory;
+      document.getElementById('th-revenue').innerText = t.thRevenue;
+      document.getElementById('th-orders').innerText = t.thOrders;
+      document.getElementById('th-cr').innerText = t.thCr;
+
+      // Підсвітка кнопок
+      if (lang === 'ua') {
+        document.getElementById('lang-ua').className = 'px-2.5 py-1 rounded-lg bg-sky-600 text-white transition';
+        document.getElementById('lang-en').className = 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition';
+      } else {
+        document.getElementById('lang-en').className = 'px-2.5 py-1 rounded-lg bg-sky-600 text-white transition';
+        document.getElementById('lang-ua').className = 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition';
+      }
+    }
+
+    document.getElementById('lang-ua').onclick = () => applyLanguage('ua');
+    document.getElementById('lang-en').onclick = () => applyLanguage('en');
+
+    // Рендер таблиці
+    const tbody = document.getElementById('tableBody');
+    reportData.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-slate-800/60 hover:bg-slate-900/40 transition';
+      tr.innerHTML = `
+        <td class="py-3 px-4 text-slate-200 font-medium">${row.category}</td>
+        <td class="py-3 px-4 text-right font-mono text-slate-300">$${row.revenue.toLocaleString()}</td>
+        <td class="py-3 px-4 text-right font-mono text-slate-300">${row.orders.toLocaleString()}</td>
+        <td class="py-3 px-4 text-right font-mono text-emerald-400">${row.cr}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Графік
     const ctx = document.getElementById('mainChart').getContext('2d');
     new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
+        labels: ['Травень / May', 'Червень / Jun', 'Липень / Jul', 'Серпень / Aug', 'Вересень / Sep', 'Жовтень / Oct'],
         datasets: [{
-          label: 'Показник',
-          data: [12, 19, 3, 5, 2, 3, 9],
+          label: 'Revenue ($)',
+          data: [78000, 85000, 92000, 108000, 115000, 124500],
           borderColor: '#38bdf8',
           backgroundColor: 'rgba(56, 189, 248, 0.1)',
           tension: 0.35,
@@ -99,6 +268,68 @@
         }
       }
     });
+
+    // 2. ЕКСПОРТ (CSV, EXCEL, PDF, JSON, MD)
+    const exportBtn = document.getElementById('exportDropdownBtn');
+    const exportMenu = document.getElementById('exportMenu');
+
+    exportBtn.onclick = (e) => {
+      e.stopPropagation();
+      exportMenu.classList.toggle('hidden');
+    };
+    window.onclick = () => exportMenu.classList.add('hidden');
+
+    function downloadFile(blob, filename) {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportData(format) {
+      exportMenu.classList.add('hidden');
+      const filename = `analytics_report_${new Date().toISOString().slice(0, 10)}`;
+
+      if (format === 'csv') {
+        let csv = '\uFEFFКатегорія,Дохід ($),Замовлення,Конверсія\n';
+        reportData.forEach(r => {
+          csv += `"${r.category}",${r.revenue},${r.orders},"${r.cr}"\n`;
+        });
+        downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), `${filename}.csv`);
+      } 
+      else if (format === 'excel') {
+        const wsData = [
+          ["Категорія", "Дохід ($)", "Замовлення", "Конверсія"],
+          ...reportData.map(r => [r.category, r.revenue, r.orders, r.cr])
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Analytics");
+        XLSX.writeFile(wb, `${filename}.xlsx`);
+      } 
+      else if (format === 'pdf') {
+        window.print();
+      } 
+      else if (format === 'json') {
+        const jsonStr = JSON.stringify({
+          generatedAt: new Date().toISOString(),
+          metrics: { totalRevenue: 124500, orders: 1840, aov: 67.66, cr: "3.45%" },
+          categories: reportData
+        }, null, 2);
+        downloadFile(new Blob([jsonStr], { type: 'application/json' }), `${filename}.json`);
+      } 
+      else if (format === 'md') {
+        let md = `# Analytics Report (${new Date().toLocaleDateString()})\n\n`;
+        md += `## KPI Summary\n- **Total Revenue:** $124,500.00\n- **Orders:** 1,840\n- **AOV:** $67.66\n- **CR:** 3.45%\n\n`;
+        md += `## Category Breakdown\n\n| Категорія | Дохід ($) | Замовлення | Конверсія |\n| :--- | :---: | :---: | :---: |\n`;
+        reportData.forEach(r => {
+          md += `| ${r.category} | $${r.revenue.toLocaleString()} | ${r.orders} | ${r.cr} |\n`;
+        });
+        downloadFile(new Blob([md], { type: 'text/markdown;charset=utf-8;' }), `${filename}.md`);
+      }
+    }
   </script>
 </body>
 </html>
