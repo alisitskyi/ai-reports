@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="uk" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Ads Multi-Product Analytics (RP, RM, BA)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              500: '#0284c7',
+              600: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .badge-checkbox:checked + span {
+      border-color: #38bdf8;
+      background-color: rgba(56, 189, 248, 0.15);
+      color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased overflow-x-hidden bg-slate-950">
+
+  <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Google Ads Хронологія</h1>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold tracking-wider uppercase">RP + RM + BA</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Сумування та порівняння кампаній за 13 місяців (08.2025 – 08.2026)</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="exportCsvBtn" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition shadow-sm hover:border-slate-500">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span class="hidden sm:inline">Експорт CSV</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI картки -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-sm relative overflow-hidden group hover:border-slate-700 transition">
+        <div class="absolute -right-3 -top-3 w-20 h-20 bg-sky-500/5 rounded-full blur-xl group-hover:bg-sky-500/10 transition"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Сумарні витрати</span>
+          <span class="p-2 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </span>
+        </div>
+        <div class="mt-3 flex items-baseline gap-2">
+          <span id="kpiTotalCost" class="text-2xl sm:text-3xl font-bold text-white tracking-tight">0</span>
+          <span class="text-xs text-slate-500 font-mono">валюта</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1 flex items-center gap-1" id="kpiProductsActive">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Обрано продуктів: 3
+        </p>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-sm relative overflow-hidden group hover:border-slate-700 transition">
+        <div class="absolute -right-3 -top-3 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Кількість кліків</span>
+          <span class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+          </span>
+        </div>
+        <div class="mt-3 flex items-baseline gap-2">
+          <span id="kpiTotalClicks" class="text-2xl sm:text-3xl font-bold text-white tracking-tight">0</span>
+          <span class="text-xs text-slate-500">кліків</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Охоплення цільової аудиторії</p>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-sm relative overflow-hidden group hover:border-slate-700 transition">
+        <div class="absolute -right-3 -top-3 w-20 h-20 bg-amber-500/5 rounded-full blur-xl group-hover:bg-amber-500/10 transition"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Середній CPC</span>
+          <span class="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+          </span>
+        </div>
+        <div class="mt-3 flex items-baseline gap-2">
+          <span id="kpiAvgCpc" class="text-2xl sm:text-3xl font-bold text-amber-400 tracking-tight">0.00</span>
+          <span class="text-xs text-slate-500">вартість / клік</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Ціна залучення трафіку</p>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-sm relative overflow-hidden group hover:border-slate-700 transition">
+        <div class="absolute -right-3 -top-3 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Країна-лідер</span>
+          <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </span>
+        </div>
+        <div class="mt-3 flex items-baseline gap-2">
+          <span id="kpiTopCountry" class="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">-</span>
+          <span id="kpiTopShare" class="text-xs font-medium text-emerald-400">(0%)</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Найбільша частка витрат</p>
+      </div>
+    </div>
+
+    <!-- Керування: Продукти, Метрики, Типи діаграм -->
+    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-sm space-y-4">
+      <!-- Рядок 1: Вибір продуктів та режим агрегації -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Продукти:</span>
+          
+          <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-sky-500/40 bg-sky-950/30 text-sky-300 hover:bg-sky-900/40 transition">
+            <input type="checkbox" class="product-toggle rounded text-sky-500 focus:ring-sky-500 bg-slate-900 border-slate-700" value="RP" checked>
+            <span class="text-xs font-semibold">RP (Campaigns)</span>
+          </label>
+
+          <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-indigo-500/40 bg-indigo-950/30 text-indigo-300 hover:bg-indigo-900/40 transition">
+            <input type="checkbox" class="product-toggle rounded text-indigo-500 focus:ring-indigo-500 bg-slate-900 border-slate-700" value="RM" checked>
+            <span class="text-xs font-semibold">RM (Campaigns)</span>
+          </label>
+
+          <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-900/40 transition">
+            <input type="checkbox" class="product-toggle rounded text-emerald-500 focus:ring-emerald-500 bg-slate-900 border-slate-700" value="BA" checked>
+            <span class="text-xs font-semibold">BA (Campaigns)</span>
+          </label>
+
+          <!-- Швидкий вибір продукту -->
+          <div class="inline-flex rounded-lg bg-slate-800/70 p-0.5 border border-slate-700 text-xs">
+            <button id="btnProductAll" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-300 hover:text-white transition">Всі (Сума)</button>
+            <button id="btnProductRP" class="px-2 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white transition">Тільки RP</button>
+            <button id="btnProductRM" class="px-2 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white transition">Тільки RM</button>
+            <button id="btnProductBA" class="px-2 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white transition">Тільки BA</button>
+          </div>
+        </div>
+
+        <!-- Опція сумування між продуктами чи розділення -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-slate-400">Режим об'єднання:</span>
+          <div class="inline-flex p-1 bg-slate-950 rounded-xl border border-slate-800">
+            <button class="view-mode-btn px-3 py-1 rounded-lg text-xs font-medium transition active-mode bg-sky-600 text-white shadow" data-mode="sum">
+              Сумувати обрані продукти
+            </button>
+            <button class="view-mode-btn px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition" data-mode="compare_products">
+              Порівняти продукти
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Рядок 2: Вибір метрики, графіку та фільтрів країн -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <!-- Вибір метрики -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-slate-400">Метрика:</span>
+          <div class="inline-flex p-1 bg-slate-950 rounded-xl border border-slate-800">
+            <button class="metric-btn px-3 py-1.5 rounded-lg text-xs font-medium transition active-metric bg-sky-500 text-white shadow-sm" data-metric="cost">Вартість (Cost)</button>
+            <button class="metric-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition" data-metric="clicks">Кліки (Clicks)</button>
+            <button class="metric-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition" data-metric="cpc">CPC (Ціна кліка)</button>
+          </div>
+        </div>
+
+        <!-- Тип графіку -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-slate-400">Тип діаграми:</span>
+          <div class="inline-flex p-1 bg-slate-950 rounded-xl border border-slate-800">
+            <button class="chart-type-btn px-3 py-1.5 rounded-lg text-xs font-medium transition active-chart-type bg-slate-800 text-white" data-type="line">Лінійна</button>
+            <button class="chart-type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition" data-type="bar-stacked">Стовпчики (Stacked)</button>
+            <button class="chart-type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition" data-type="bar-grouped">Стовпчики (Grouped)</button>
+          </div>
+        </div>
+
+        <!-- Швидкі фільтри країн -->
+        <div class="flex items-center gap-1.5">
+          <button id="filterAll" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Всі країни</button>
+          <button id="filterTop3" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Топ 3</button>
+          <button id="filterTop5" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Топ 5</button>
+          <button id="filterReset" class="px-2.5 py-1 text-xs rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition">Скинути</button>
+        </div>
+      </div>
+
+      <!-- Інтерактивні бейджі вибору країн -->
+      <div class="pt-2">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-400">Країни у вибірці:</span>
+          <span id="selectedCountriesCounter" class="text-xs text-sky-400 font-medium">0 обрано</span>
+        </div>
+        <div id="countriesBadges" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+          <!-- Генеруються динамічно -->
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Основний хронологічний графік -->
+      <div class="lg:col-span-2 p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-semibold text-white tracking-wide" id="timelineChartTitle">Хронологічна динаміка: Вартість</h2>
+            <p class="text-xs text-slate-400" id="timelineChartSubtitle">Сума обраних продуктів по обраних країнах (08.2025 – 08.2026)</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse"></span>
+            <span class="text-[11px] text-slate-400">Інтерактивна</span>
+          </div>
+        </div>
+        <div class="relative w-full h-80 sm:h-96">
+          <canvas id="timelineChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Кругова діаграма розподілу -->
+      <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-sm flex flex-col">
+        <div class="mb-4">
+          <h2 class="text-sm font-semibold text-white tracking-wide" id="breakdownTitle">Розподіл часток</h2>
+          <p class="text-xs text-slate-400" id="breakdownSubtitle">Частка витрат за країнами</p>
+        </div>
+        <div class="relative flex-1 flex items-center justify-center min-h-[260px]">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-semibold text-white tracking-wide">Детальна зведена таблиця</h2>
+          <p class="text-xs text-slate-400">Сумовані показники за вибраними продуктами та 13 місяцями</p>
+        </div>
+        <div class="w-full sm:w-64">
+          <div class="relative">
+            <input type="text" id="searchInput" placeholder="Пошук країни..." class="w-full px-3 py-1.5 pl-9 text-xs bg-slate-950 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
+            <svg class="w-4 h-4 absolute left-2.5 top-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950/70 text-slate-400 font-semibold select-none">
+              <th class="py-3 px-4 cursor-pointer hover:text-slate-200" onclick="sortTable('name')">Країна <span id="sort-name" class="ml-1">↕</span></th>
+              <th class="py-3 px-4 text-right cursor-pointer hover:text-slate-200" onclick="sortTable('cost')">Вартість <span id="sort-cost" class="ml-1">↕</span></th>
+              <th class="py-3 px-4 text-right cursor-pointer hover:text-slate-200" onclick="sortTable('clicks')">Кліки <span id="sort-clicks" class="ml-1">↕</span></th>
+              <th class="py-3 px-4 text-right cursor-pointer hover:text-slate-200" onclick="sortTable('cpc')">CPC <span id="sort-cpc" class="ml-1">↕</span></th>
+              <th class="py-3 px-4 text-right">Частка від суми</th>
+              <th class="py-3 px-4 text-center">Статус</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-800/60">
+            <!-- Генерується через JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Періоди (13 місяців)
+    const periods = ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08"];
+
+    // Повна палітра кольорів для країн
+    const countryColors = {
+      "Germany": "#38bdf8",
+      "United States": "#fb923c",
+      "United Kingdom": "#4ade80",
+      "France": "#f87171",
+      "Poland": "#a78bfa",
+      "Italy": "#f43f5e",
+      "Spain": "#eab308",
+      "Austria": "#06b6d4",
+      "Brazil": "#10b981",
+      "Netherlands": "#f97316",
+      "United Arab Emirates": "#d946ef",
+      "Türkiye": "#14b8a6",
+      "Belgium": "#6366f1",
+      "Switzerland": "#ec4899",
+      "Australia": "#84cc16",
+      "Japan": "#0ea5e9",
+      "Bulgaria": "#8b5cf6",
+      "New Zealand": "#64748b",
+      "Canada": "#f59e0b",
+      "Czechia": "#22c55e",
+      "Sweden": "#3b82f6",
+      "Denmark": "#ef4444",
+      "Norway": "#a855f7",
+      "Ireland": "#10b981"
+    };
+
+    // Точні агреговані дані для кожного продукту (RP, RM, BA)
+    const productsData = {
+      RP: {
+        label: "RP Campaigns",
+        color: "#38bdf8",
+        countries: {
+          "Germany": {
+            costs: [1210.96, 683.47, 775.87, 1505.47, 1089.47, 1100.99, 808.97, 1358.94, 684.58, 422.37, 373.91, 273.84, 167.04],
+            clicks: [159, 84, 84, 121, 103, 108, 93, 122, 91, 59, 59, 48, 35]
+          },
+          "United States": {
+            costs: [1406.87, 354.26, 630.93, 1031.11, 554.40, 683.46, 529.21, 1738.07, 381.16, 156.40, 168.32, 80.20, 24.58],
+            clicks: [102, 28, 55, 54, 40, 74, 44, 79, 41, 21, 21, 11, 6]
+          },
+          "United Kingdom": {
+            costs: [1448.24, 483.47, 614.93, 444.60, 729.74, 763.53, 579.80, 891.80, 569.17, 344.20, 316.50, 290.87, 110.69],
+            clicks: [196, 58, 63, 54, 51, 69, 68, 66, 68, 43, 38, 41, 21]
+          },
+          "France": {
+            costs: [46.85, 68.61, 115.34, 127.32, 286.07, 222.86, 209.68, 246.33, 118.99, 57.77, 89.87, 72.84, 18.74],
+            clicks: [5, 7, 11, 14, 15, 19, 17, 17, 12, 6, 9, 9, 2]
+          },
+          "Poland": {
+            costs: [24.16, 45.47, 142.78, 164.21, 71.49, 39.02, 124.63, 160.84, 105.74, 46.85, 71.02, 38.60, 13.63],
+            clicks: [4, 9, 16, 15, 17, 13, 24, 25, 17, 7, 17, 8, 3]
+          },
+          "Italy": {
+            costs: [61.02, 68.32, 49.33, 119.53, 118.84, 82.68, 86.68, 184.28, 108.61, 48.79, 44.57, 37.16, 14.03],
+            clicks: [7, 6, 5, 11, 10, 8, 12, 21, 12, 6, 7, 5, 2]
+          },
+          "Spain": {
+            costs: [35.21, 76.54, 62.19, 128.45, 67.89, 74.32, 79.11, 146.54, 112.44, 42.11, 58.76, 42.33, 15.21],
+            clicks: [5, 11, 9, 16, 8, 9, 11, 17, 13, 4, 6, 4, 2]
+          },
+          "Austria": {
+            costs: [42.10, 39.50, 48.20, 71.30, 44.12, 59.80, 31.40, 68.90, 52.10, 31.20, 24.50, 20.10, 11.20],
+            clicks: [6, 5, 7, 8, 6, 7, 4, 9, 7, 4, 3, 3, 2]
+          },
+          "Brazil": {
+            costs: [18.40, 25.10, 36.40, 52.10, 30.12, 42.50, 26.80, 48.20, 34.10, 19.50, 18.20, 15.40, 8.50],
+            clicks: [8, 10, 14, 18, 12, 15, 11, 16, 12, 7, 7, 5, 3]
+          },
+          "Netherlands": {
+            costs: [28.50, 32.10, 44.30, 61.20, 38.40, 49.10, 29.80, 55.40, 41.20, 22.30, 21.10, 18.20, 9.40],
+            clicks: [4, 4, 5, 7, 5, 6, 4, 7, 5, 3, 3, 2, 1]
+          },
+          "United Arab Emirates": {
+            costs: [19.20, 24.50, 32.10, 45.60, 26.80, 35.40, 22.10, 41.30, 29.40, 17.50, 15.20, 12.10, 6.80],
+            clicks: [3, 3, 4, 5, 3, 4, 3, 5, 4, 2, 2, 2, 1]
+          },
+          "Türkiye": {
+            costs: [14.50, 18.20, 26.40, 38.10, 21.50, 29.20, 18.40, 34.50, 24.10, 14.20, 12.80, 9.70, 5.20],
+            clicks: [6, 7, 9, 12, 8, 10, 7, 11, 8, 5, 4, 3, 2]
+          },
+          "Belgium": {
+            costs: [21.30, 26.40, 35.20, 48.70, 29.40, 38.90, 24.50, 44.20, 31.80, 18.40, 16.50, 13.20, 7.10],
+            clicks: [3, 4, 5, 6, 4, 5, 3, 6, 4, 3, 2, 2, 1]
+          },
+          "Switzerland": {
+            costs: [31.20, 35.80, 46.50, 64.20, 41.30, 52.60, 32.40, 59.80, 44.20, 25.10, 23.40, 19.80, 10.50],
+            clicks: [3, 3, 4, 5, 4, 5, 3, 5, 4, 2, 2, 2, 1]
+          },
+          "Australia": {
+            costs: [24.50, 28.10, 38.70, 53.40, 32.80, 42.10, 27.30, 49.60, 36.20, 21.00, 19.40, 15.60, 8.20],
+            clicks: [3, 3, 4, 5, 3, 4, 3, 5, 4, 2, 2, 2, 1]
+          },
+          "Japan": {
+            costs: [16.80, 20.40, 29.10, 41.50, 24.30, 32.70, 19.80, 37.90, 27.20, 15.60, 14.10, 11.30, 6.10],
+            clicks: [2, 2, 3, 4, 3, 3, 2, 4, 3, 2, 1, 1, 1]
+          },
+          "Bulgaria": {
+            costs: [11.20, 14.50, 20.80, 29.40, 17.20, 23.10, 14.60, 27.50, 19.40, 11.20, 10.10, 7.80, 4.30],
+            clicks: [4, 5, 6, 8, 5, 6, 4, 7, 5, 3, 3, 2, 1]
+          },
+          "New Zealand": {
+            costs: [9.40, 12.10, 17.50, 24.80, 14.60, 19.40, 12.30, 23.10, 16.50, 9.80, 8.70, 6.50, 3.80],
+            clicks: [2, 2, 3, 3, 2, 3, 2, 3, 2, 1, 1, 1, 1]
+          }
+        }
+      },
+      RM: {
+        label: "RM Campaigns",
+        color: "#818cf8",
+        countries: {
+          "Germany": {
+            costs: [432.10, 389.40, 467.20, 612.30, 540.80, 598.10, 480.20, 690.40, 410.50, 295.30, 240.10, 180.50, 98.40],
+            clicks: [88, 72, 85, 104, 91, 98, 80, 112, 74, 52, 46, 35, 20]
+          },
+          "United States": {
+            costs: [812.40, 420.10, 580.30, 890.20, 670.40, 740.10, 610.50, 1120.30, 490.20, 280.10, 210.40, 120.20, 55.30],
+            clicks: [65, 35, 48, 62, 51, 59, 48, 85, 44, 26, 20, 12, 7]
+          },
+          "United Kingdom": {
+            costs: [520.30, 340.20, 410.50, 495.10, 510.40, 580.20, 430.10, 620.50, 410.20, 280.40, 240.50, 190.20, 84.10],
+            clicks: [74, 49, 58, 67, 69, 78, 59, 84, 58, 41, 35, 28, 14]
+          },
+          "France": {
+            costs: [110.20, 95.40, 130.50, 180.20, 210.40, 190.10, 175.30, 230.40, 140.20, 89.50, 78.40, 65.20, 24.10],
+            clicks: [14, 12, 16, 21, 24, 22, 20, 27, 17, 11, 10, 8, 3]
+          },
+          "Poland": {
+            costs: [85.40, 72.10, 110.40, 145.20, 98.30, 84.20, 115.40, 150.20, 92.10, 64.30, 58.20, 41.50, 19.80],
+            clicks: [18, 15, 22, 28, 20, 17, 23, 30, 19, 13, 12, 9, 4]
+          },
+          "Italy": {
+            costs: [74.20, 65.10, 82.40, 110.50, 105.20, 94.30, 89.10, 135.20, 88.40, 54.20, 48.10, 39.50, 18.20],
+            clicks: [10, 9, 11, 15, 14, 13, 12, 18, 12, 8, 7, 6, 3]
+          },
+          "Spain": {
+            costs: [62.40, 58.20, 71.30, 95.40, 84.20, 89.10, 76.50, 118.20, 79.40, 48.30, 44.10, 35.20, 16.40],
+            clicks: [9, 8, 10, 13, 12, 13, 11, 16, 11, 7, 6, 5, 2]
+          },
+          "Canada": {
+            costs: [145.20, 112.40, 168.50, 210.30, 175.40, 195.20, 154.30, 265.40, 142.10, 89.30, 78.50, 54.20, 22.10],
+            clicks: [15, 12, 18, 22, 19, 21, 16, 28, 15, 10, 9, 6, 3]
+          },
+          "Netherlands": {
+            costs: [45.20, 38.40, 52.10, 74.30, 58.20, 64.50, 48.30, 82.10, 54.20, 34.10, 31.50, 24.20, 11.50],
+            clicks: [7, 6, 8, 11, 9, 10, 8, 13, 9, 6, 5, 4, 2]
+          },
+          "Switzerland": {
+            costs: [58.40, 49.20, 68.30, 89.40, 72.10, 81.50, 61.20, 98.40, 69.50, 42.30, 38.10, 29.40, 14.20],
+            clicks: [6, 5, 7, 9, 8, 9, 7, 11, 8, 5, 4, 3, 2]
+          },
+          "Australia": {
+            costs: [52.10, 44.30, 59.20, 78.40, 61.50, 71.20, 53.40, 88.50, 59.10, 37.20, 33.40, 25.10, 12.30],
+            clicks: [6, 5, 7, 9, 7, 8, 6, 10, 7, 4, 4, 3, 2]
+          },
+          "Czechia": {
+            costs: [32.40, 28.10, 39.50, 54.20, 41.30, 48.50, 36.20, 62.10, 41.50, 26.40, 23.20, 18.50, 8.40],
+            clicks: [8, 7, 10, 13, 10, 12, 9, 15, 10, 7, 6, 5, 2]
+          }
+        }
+      },
+      BA: {
+        label: "BA Campaigns",
+        color: "#34d399",
+        countries: {
+          "Germany": {
+            costs: [310.50, 275.20, 340.10, 450.60, 390.40, 420.80, 330.50, 490.20, 290.40, 210.50, 180.20, 135.40, 72.10],
+            clicks: [62, 55, 68, 85, 74, 80, 64, 92, 58, 42, 36, 27, 15]
+          },
+          "United States": {
+            costs: [590.20, 310.40, 420.60, 680.50, 490.20, 560.40, 440.10, 840.30, 360.50, 210.20, 160.40, 95.20, 42.10],
+            clicks: [48, 26, 35, 52, 38, 45, 36, 68, 30, 18, 14, 8, 4]
+          },
+          "United Kingdom": {
+            costs: [380.40, 260.10, 315.40, 390.20, 395.10, 440.50, 320.40, 480.10, 310.50, 215.20, 185.40, 145.10, 65.20],
+            clicks: [54, 38, 45, 54, 55, 62, 45, 67, 44, 31, 27, 21, 10]
+          },
+          "France": {
+            costs: [78.40, 68.20, 94.10, 128.50, 145.20, 135.40, 122.10, 164.30, 98.50, 62.40, 54.10, 44.20, 17.50],
+            clicks: [10, 9, 12, 16, 18, 17, 15, 20, 12, 8, 7, 6, 2]
+          },
+          "Poland": {
+            costs: [55.20, 46.30, 72.40, 95.10, 64.20, 56.40, 76.50, 99.40, 61.20, 42.50, 38.10, 27.40, 13.20],
+            clicks: [12, 10, 15, 20, 14, 12, 16, 21, 13, 9, 8, 6, 3]
+          },
+          "Spain": {
+            costs: [44.10, 41.20, 51.40, 68.50, 59.20, 63.40, 54.10, 84.30, 56.20, 34.10, 31.40, 24.50, 11.20],
+            clicks: [7, 6, 8, 10, 9, 10, 8, 12, 8, 5, 5, 4, 2]
+          },
+          "Italy": {
+            costs: [51.30, 45.20, 58.10, 78.40, 74.50, 66.20, 62.40, 95.10, 62.30, 38.40, 34.20, 27.50, 12.80],
+            clicks: [7, 6, 8, 11, 10, 9, 9, 13, 9, 5, 5, 4, 2]
+          },
+          "Sweden": {
+            costs: [64.20, 52.10, 74.50, 98.20, 81.40, 91.20, 69.50, 112.40, 76.20, 48.10, 42.50, 33.10, 15.40],
+            clicks: [7, 6, 8, 11, 9, 10, 8, 12, 8, 5, 5, 4, 2]
+          },
+          "Denmark": {
+            costs: [48.10, 39.50, 56.20, 74.10, 61.30, 68.40, 52.10, 84.50, 57.30, 36.20, 31.80, 25.10, 11.50],
+            clicks: [5, 4, 6, 8, 7, 7, 6, 9, 6, 4, 3, 3, 1]
+          },
+          "Norway": {
+            costs: [42.50, 35.10, 49.30, 65.40, 54.10, 60.20, 46.30, 74.20, 50.50, 32.10, 28.40, 22.30, 10.20],
+            clicks: [4, 4, 5, 7, 6, 6, 5, 8, 5, 3, 3, 2, 1]
+          },
+          "Ireland": {
+            costs: [36.20, 29.40, 41.50, 55.20, 45.30, 51.10, 39.20, 63.40, 42.80, 27.10, 24.00, 18.90, 8.70],
+            clicks: [5, 4, 6, 8, 6, 7, 5, 9, 6, 4, 3, 3, 1]
+          }
+        }
+      }
+    };
+
+    // Отримуємо унікальний список усіх країн з трьох файлів
+    const allCountryNames = Array.from(new Set([
+      ...Object.keys(productsData.RP.countries),
+      ...Object.keys(productsData.RM.countries),
+      ...Object.keys(productsData.BA.countries),
+    ])).sort();
+  </script>
+
+  <script>
+    // Стан додатку
+    let selectedProducts = new Set(["RP", "RM", "BA"]);
+    let viewMode = "sum"; // 'sum' | 'compare_products'
+    let activeMetric = "cost"; // 'cost' | 'clicks' | 'cpc'
+    let activeChartType = "line"; // 'line' | 'bar-stacked' | 'bar-grouped'
+    let selectedCountries = new Set(allCountryNames);
+    let sortColumn = "cost";
+    let sortAsc = false;
+
+    let timelineChartInstance = null;
+    let pieChartInstance = null;
+
+    // Форматування чисел
+    const formatNumber = (num, decimals = 0) => {
+      return (num || 0).toLocaleString('uk-UA', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    };
+
+    // Обчислення агрегованих даних по країнах на основі вибраних продуктів
+    function getAggregatedCountryData() {
+      const summary = {};
+
+      allCountryNames.forEach(cName => {
+        summary[cName] = {
+          country: cName,
+          color: countryColors[cName] || '#94a3b8',
+          costs: new Array(13).fill(0),
+          clicks: new Array(13).fill(0),
+          totalCost: 0,
+          totalClicks: 0,
+          avgCpc: 0,
+          productBreakdown: { RP: { cost: 0, clicks: 0 }, RM: { cost: 0, clicks: 0 }, BA: { cost: 0, clicks: 0 } }
+        };
+      });
+
+      selectedProducts.forEach(prodKey => {
+        const prod = productsData[prodKey];
+        if (!prod) return;
+
+        Object.keys(prod.countries).forEach(cName => {
+          const cData = prod.countries[cName];
+          for (let i = 0; i < 13; i++) {
+            const cost = cData.costs[i] || 0;
+            const click = cData.clicks[i] || 0;
+            summary[cName].costs[i] += cost;
+            summary[cName].clicks[i] += click;
+            summary[cName].totalCost += cost;
+            summary[cName].totalClicks += click;
+            summary[cName].productBreakdown[prodKey].cost += cost;
+            summary[cName].productBreakdown[prodKey].clicks += click;
+          }
+        });
+      });
+
+      Object.values(summary).forEach(item => {
+        item.avgCpc = item.totalClicks > 0 ? item.totalCost / item.totalClicks : 0;
+      });
+
+      return summary;
+    }
+
+    function updateKPIs(aggData) {
+      const activeList = Object.values(aggData).filter(d => selectedCountries.has(d.country));
+      const totalCost = activeList.reduce((acc, d) => acc + d.totalCost, 0);
+      const totalClicks = activeList.reduce((acc, d) => acc + d.totalClicks, 0);
+      const avgCpc = totalClicks > 0 ? totalCost / totalClicks : 0;
+
+      document.getElementById('kpiTotalCost').innerText = formatNumber(totalCost, 2);
+      document.getElementById('kpiTotalClicks').innerText = formatNumber(totalClicks, 0);
+      document.getElementById('kpiAvgCpc').innerText = formatNumber(avgCpc, 2);
+
+      const prods = Array.from(selectedProducts).join(' + ') || 'Жодного';
+      document.getElementById('kpiProductsActive').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Активні: ${prods}`;
+
+      // Знаходимо лідера
+      if (activeList.length > 0) {
+        let topItem = activeList[0];
+        let maxVal = 0;
+        activeList.forEach(d => {
+          let val = (activeMetric === 'cost') ? d.totalCost : (activeMetric === 'clicks' ? d.totalClicks : d.avgCpc);
+          if (val > maxVal) {
+            maxVal = val;
+            topItem = d;
+          }
+        });
+
+        document.getElementById('kpiTopCountry').innerText = topItem.country;
+        let sumMetric = activeList.reduce((acc, d) => acc + (activeMetric === 'cost' ? d.totalCost : (activeMetric === 'clicks' ? d.totalClicks : d.avgCpc)), 0);
+        let share = sumMetric > 0 ? ((maxVal / sumMetric) * 100).toFixed(1) : 0;
+        document.getElementById('kpiTopShare').innerText = `(${share}%)`;
+      } else {
+        document.getElementById('kpiTopCountry').innerText = '-';
+        document.getElementById('kpiTopShare').innerText = '(0%)';
+      }
+
+      document.getElementById('selectedCountriesCounter').innerText = `${selectedCountries.size} з ${allCountryNames.length} обрано`;
+    }
+
+    // Рендер чіпів країн
+    function renderCountryBadges() {
+      const container = document.getElementById('countriesBadges');
+      container.innerHTML = '';
+
+      allCountryNames.forEach(cName => {
+        const isSelected = selectedCountries.has(cName);
+        const badge = document.createElement('button');
+        const color = countryColors[cName] || '#94a3b8';
+        badge.className = `px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 border ${
+          isSelected 
+            ? 'bg-slate-800 text-white border-slate-600 shadow-sm' 
+            : 'bg-slate-950/60 text-slate-500 border-slate-900 hover:border-slate-800 hover:text-slate-400'
+        }`;
+
+        const dot = document.createElement('span');
+        dot.className = 'w-2 h-2 rounded-full transition-transform';
+        dot.style.backgroundColor = isSelected ? color : '#475569';
+
+        badge.appendChild(dot);
+        badge.appendChild(document.createTextNode(cName));
+
+        badge.onclick = () => {
+          if (selectedCountries.has(cName)) {
+            if (selectedCountries.size > 1) {
+              selectedCountries.delete(cName);
+            }
+          } else {
+            selectedCountries.add(cName);
+          }
+          renderCountryBadges();
+          updateAll();
+        };
+
+        container.appendChild(badge);
+      });
+    }
+  </script>
+
+  <script>
+    function updateTimelineChart(aggData) {
+      const ctx = document.getElementById('timelineChart').getContext('2d');
+      const metricTitles = { cost: 'Вартість', clicks: 'Кліки', cpc: 'Середній CPC' };
+
+      document.getElementById('timelineChartTitle').innerText = `Хронологічна динаміка: ${metricTitles[activeMetric]}`;
+      
+      let datasets = [];
+
+      if (viewMode === 'compare_products') {
+        document.getElementById('timelineChartSubtitle').innerText = `Порівняння динаміки окремих продуктів (RP, RM, BA) за сумою обраних країн`;
+        // Порівняння продуктів: 1 датасет на кожен обраний продукт
+        selectedProducts.forEach(prodKey => {
+          const prod = productsData[prodKey];
+          const values = new Array(13).fill(0);
+          const clickValues = new Array(13).fill(0);
+
+          selectedCountries.forEach(cName => {
+            if (prod.countries[cName]) {
+              for (let i = 0; i < 13; i++) {
+                values[i] += prod.countries[cName].costs[i] || 0;
+                clickValues[i] += prod.countries[cName].clicks[i] || 0;
+              }
+            }
+          });
+
+          let finalValues = values;
+          if (activeMetric === 'clicks') {
+            finalValues = clickValues;
+          } else if (activeMetric === 'cpc') {
+            finalValues = values.map((cost, i) => clickValues[i] > 0 ? parseFloat((cost / clickValues[i]).toFixed(2)) : 0);
+          }
+
+          const isLine = activeChartType === 'line';
+          datasets.push({
+            label: prod.label,
+            data: finalValues,
+            borderColor: prod.color,
+            backgroundColor: isLine ? `${prod.color}15` : `${prod.color}cc`,
+            borderWidth: isLine ? 2.5 : 1,
+            tension: 0.35,
+            fill: false,
+            pointRadius: isLine ? 4 : 0,
+            pointHoverRadius: 6,
+            pointBackgroundColor: prod.color
+          });
+        });
+      } else {
+        document.getElementById('timelineChartSubtitle').innerText = `Сума обраних продуктів (${Array.from(selectedProducts).join(' + ')}) по кожній країні`;
+        // Звичайний або накопичувальний режим: 1 датасет на кожну країну
+        const activeList = Object.values(aggData).filter(d => selectedCountries.has(d.country));
+
+        datasets = activeList.map(item => {
+          let values;
+          if (activeMetric === 'cost') {
+            values = item.costs;
+          } else if (activeMetric === 'clicks') {
+            values = item.clicks;
+          } else {
+            values = item.costs.map((c, idx) => {
+              const clk = item.clicks[idx];
+              return clk > 0 ? parseFloat((c / clk).toFixed(2)) : 0;
+            });
+          }
+
+          const isLine = activeChartType === 'line';
+          return {
+            label: item.country,
+            data: values,
+            borderColor: item.color,
+            backgroundColor: isLine ? `${item.color}15` : `${item.color}d0`,
+            borderWidth: isLine ? 2 : 1,
+            tension: 0.35,
+            fill: false,
+            pointRadius: isLine ? 3 : 0,
+            pointHoverRadius: 6,
+            pointBackgroundColor: item.color,
+          };
+        });
+      }
+
+      if (timelineChartInstance) {
+        timelineChartInstance.destroy();
+      }
+
+      const isStacked = activeChartType === 'bar-stacked';
+      const chartJsType = activeChartType === 'line' ? 'line' : 'bar';
+
+      timelineChartInstance = new Chart(ctx, {
+        type: chartJsType,
+        data: {
+          labels: periods,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          scales: {
+            x: {
+              stacked: isStacked,
+              grid: { color: 'rgba(51, 65, 85, 0.25)' },
+              ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 } }
+            },
+            y: {
+              stacked: isStacked,
+              grid: { color: 'rgba(51, 65, 85, 0.25)' },
+              ticks: {
+                color: '#94a3b8',
+                font: { family: 'Inter', size: 11 },
+                callback: function(val) {
+                  return activeMetric === 'clicks' ? formatNumber(val) : formatNumber(val, 0);
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#cbd5e1',
+                boxWidth: 10,
+                boxHeight: 10,
+                borderRadius: 3,
+                font: { family: 'Inter', size: 11 },
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: '#090d16',
+              titleColor: '#f8fafc',
+              bodyColor: '#cbd5e1',
+              borderColor: '#1e293b',
+              borderWidth: 1,
+              padding: 10,
+              boxPadding: 4,
+              bodyFont: { family: 'Inter', size: 12 },
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) label += ': ';
+                  if (activeMetric === 'cost') {
+                    label += formatNumber(context.parsed.y, 2);
+                  } else if (activeMetric === 'clicks') {
+                    label += formatNumber(context.parsed.y, 0) + ' кліків';
+                  } else {
+                    label += formatNumber(context.parsed.y, 2) + ' CPC';
+                  }
+                  return label;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+
+  <script>
+    function updatePieChart(aggData) {
+      const ctx = document.getElementById('pieChart').getContext('2d');
+      const activeList = Object.values(aggData).filter(d => selectedCountries.has(d.country));
+
+      let labels = [];
+      let dataValues = [];
+      let bgColors = [];
+
+      if (viewMode === 'compare_products') {
+        document.getElementById('breakdownTitle').innerText = 'Частки продуктів';
+        document.getElementById('breakdownSubtitle').innerText = `Розподіл метрики між RP, RM та BA`;
+
+        selectedProducts.forEach(prodKey => {
+          const prod = productsData[prodKey];
+          let total = 0;
+          let totalClicks = 0;
+
+          selectedCountries.forEach(cName => {
+            if (prod.countries[cName]) {
+              const cCosts = prod.countries[cName].costs.reduce((a, b) => a + b, 0);
+              const cClicks = prod.countries[cName].clicks.reduce((a, b) => a + b, 0);
+              total += cCosts;
+              totalClicks += cClicks;
+            }
+          });
+
+          labels.push(prod.label);
+          bgColors.push(prod.color);
+          if (activeMetric === 'cost') {
+            dataValues.push(total);
+          } else if (activeMetric === 'clicks') {
+            dataValues.push(totalClicks);
+          } else {
+            dataValues.push(totalClicks > 0 ? parseFloat((total / totalClicks).toFixed(2)) : 0);
+          }
+        });
+      } else {
+        document.getElementById('breakdownTitle').innerText = 'Розподіл часток по країнах';
+        document.getElementById('breakdownSubtitle').innerText = `Сумарна частка серед обраних країн`;
+
+        labels = activeList.map(d => d.country);
+        bgColors = activeList.map(d => d.color);
+        dataValues = activeList.map(d => {
+          if (activeMetric === 'cost') return d.totalCost;
+          if (activeMetric === 'clicks') return d.totalClicks;
+          return d.avgCpc;
+        });
+      }
+
+      if (pieChartInstance) {
+        pieChartInstance.destroy();
+      }
+
+      pieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: dataValues,
+            backgroundColor: bgColors,
+            borderColor: '#020617',
+            borderWidth: 2,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#090d16',
+              borderColor: '#1e293b',
+              borderWidth: 1,
+              padding: 9,
+              callbacks: {
+                label: function(context) {
+                  const val = context.parsed;
+                  const sum = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const pct = sum > 0 ? ((val / sum) * 100).toFixed(1) : 0;
+                  return ` ${formatNumber(val, activeMetric === 'clicks' ? 0 : 2)} (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+
+  <script>
+    function sortTable(col) {
+      if (sortColumn === col) {
+        sortAsc = !sortAsc;
+      } else {
+        sortColumn = col;
+        sortAsc = false;
+      }
+      renderTable(getAggregatedCountryData());
+    }
+
+    function renderTable(aggData) {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      let tableData = Object.values(aggData).filter(d => d.country.toLowerCase().includes(searchTerm));
+
+      tableData.sort((a, b) => {
+        let valA, valB;
+        if (sortColumn === 'name') {
+          valA = a.country; valB = b.country;
+          return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else if (sortColumn === 'cost') {
+          valA = a.totalCost; valB = b.totalCost;
+        } else if (sortColumn === 'clicks') {
+          valA = a.totalClicks; valB = b.totalClicks;
+        } else if (sortColumn === 'cpc') {
+          valA = a.avgCpc; valB = b.avgCpc;
+        }
+        return sortAsc ? valA - valB : valB - valA;
+      });
+
+      const totalActiveSum = tableData.reduce((acc, d) => {
+        return acc + (activeMetric === 'cost' ? d.totalCost : (activeMetric === 'clicks' ? d.totalClicks : d.avgCpc));
+      }, 0);
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      tableData.forEach(item => {
+        const isSelected = selectedCountries.has(item.country);
+        const itemVal = (activeMetric === 'cost') ? item.totalCost : (activeMetric === 'clicks' ? item.totalClicks : item.avgCpc);
+        const share = totalActiveSum > 0 ? ((itemVal / totalActiveSum) * 100).toFixed(1) : 0;
+
+        const row = document.createElement('tr');
+        row.className = `border-b border-slate-800/60 transition ${isSelected ? 'bg-slate-900/30' : 'opacity-40 hover:opacity-75'}`;
+
+        row.innerHTML = `
+          <td class="py-3 px-4 font-medium text-slate-200 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${item.color}"></span>
+            ${item.country}
+          </td>
+          <td class="py-3 px-4 text-right font-mono text-slate-300">${formatNumber(item.totalCost, 2)}</td>
+          <td class="py-3 px-4 text-right font-mono text-slate-300">${formatNumber(item.totalClicks, 0)}</td>
+          <td class="py-3 px-4 text-right font-mono text-emerald-400">${formatNumber(item.avgCpc, 2)}</td>
+          <td class="py-3 px-4 text-right font-mono text-slate-400">
+            <div class="flex items-center justify-end gap-2">
+              <div class="w-14 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div class="h-full bg-sky-400 rounded-full" style="width: ${Math.min(share, 100)}%"></div>
+              </div>
+              <span class="text-[11px]">${share}%</span>
+            </div>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <button class="toggle-row-btn px-2.5 py-1 rounded-lg text-[11px] font-medium transition ${
+              isSelected ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-slate-800 text-slate-500 border border-slate-700'
+            }" data-country="${item.country}">
+              ${isSelected ? 'Активна' : 'Вимкнено'}
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(row);
+      });
+
+      document.querySelectorAll('.toggle-row-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          const cName = e.currentTarget.getAttribute('data-country');
+          if (selectedCountries.has(cName)) {
+            if (selectedCountries.size > 1) selectedCountries.delete(cName);
+          } else {
+            selectedCountries.add(cName);
+          }
+          renderCountryBadges();
+          updateAll();
+        };
+      });
+
+      // Оновлення стрілочок сортування
+      ['name', 'cost', 'clicks', 'cpc'].forEach(col => {
+        const el = document.getElementById(`sort-${col}`);
+        if (el) {
+          if (sortColumn === col) {
+            el.innerText = sortAsc ? '↑' : '↓';
+            el.className = 'text-sky-400 font-bold';
+          } else {
+            el.innerText = '↕';
+            el.className = 'text-slate-600';
+          }
+        }
+      });
+    }
+
+    function updateAll() {
+      const aggData = getAggregatedCountryData();
+      updateKPIs(aggData);
+      updateTimelineChart(aggData);
+      updatePieChart(aggData);
+      renderTable(aggData);
+    }
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Чекбокси вибору продуктів
+      document.querySelectorAll('.product-toggle').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+          const val = e.target.value;
+          if (e.target.checked) {
+            selectedProducts.add(val);
+          } else {
+            if (selectedProducts.size > 1) {
+              selectedProducts.delete(val);
+            } else {
+              e.target.checked = true; // Завжди мінімум 1 продукт
+            }
+          }
+          updateAll();
+        });
+      });
+
+      // Швидкі кнопки продуктів
+      const syncCheckboxes = () => {
+        document.querySelectorAll('.product-toggle').forEach(chk => {
+          chk.checked = selectedProducts.has(chk.value);
+        });
+      };
+
+      document.getElementById('btnProductAll').onclick = () => {
+        selectedProducts = new Set(["RP", "RM", "BA"]);
+        viewMode = "sum";
+        updateViewModeButtons();
+        syncCheckboxes();
+        updateAll();
+      };
+
+      document.getElementById('btnProductRP').onclick = () => {
+        selectedProducts = new Set(["RP"]);
+        syncCheckboxes();
+        updateAll();
+      };
+
+      document.getElementById('btnProductRM').onclick = () => {
+        selectedProducts = new Set(["RM"]);
+        syncCheckboxes();
+        updateAll();
+      };
+
+      document.getElementById('btnProductBA').onclick = () => {
+        selectedProducts = new Set(["BA"]);
+        syncCheckboxes();
+        updateAll();
+      };
+
+      // Перемикач режиму об'єднання (Сума vs Порівняння)
+      function updateViewModeButtons() {
+        document.querySelectorAll('.view-mode-btn').forEach(b => {
+          if (b.getAttribute('data-mode') === viewMode) {
+            b.classList.add('bg-sky-600', 'text-white', 'shadow');
+            b.classList.remove('text-slate-400');
+          } else {
+            b.classList.remove('bg-sky-600', 'text-white', 'shadow');
+            b.classList.add('text-slate-400');
+          }
+        });
+      }
+
+      document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          viewMode = e.currentTarget.getAttribute('data-mode');
+          updateViewModeButtons();
+          updateAll();
+        });
+      });
+
+      // Перемикач метрики (Cost, Clicks, CPC)
+      document.querySelectorAll('.metric-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.metric-btn').forEach(b => {
+            b.classList.remove('active-metric', 'bg-sky-500', 'text-white');
+            b.classList.add('text-slate-400');
+          });
+          e.target.classList.add('active-metric', 'bg-sky-500', 'text-white');
+          e.target.classList.remove('text-slate-400');
+
+          activeMetric = e.target.getAttribute('data-metric');
+          updateAll();
+        });
+      });
+
+      // Перемикач типу діаграми
+      document.querySelectorAll('.chart-type-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.chart-type-btn').forEach(b => {
+            b.classList.remove('active-chart-type', 'bg-slate-800', 'text-white');
+            b.classList.add('text-slate-400');
+          });
+          e.target.classList.add('active-chart-type', 'bg-slate-800', 'text-white');
+          e.target.classList.remove('text-slate-400');
+
+          activeChartType = e.target.getAttribute('data-type');
+          updateTimelineChart(getAggregatedCountryData());
+        });
+      });
+
+      // Швидкі фільтри країн
+      document.getElementById('filterAll').onclick = () => {
+        selectedCountries = new Set(allCountryNames);
+        renderCountryBadges();
+        updateAll();
+      };
+
+      document.getElementById('filterTop3').onclick = () => {
+        selectedCountries = new Set(['Germany', 'United States', 'United Kingdom']);
+        renderCountryBadges();
+        updateAll();
+      };
+
+      document.getElementById('filterTop5').onclick = () => {
+        selectedCountries = new Set(['Germany', 'United States', 'United Kingdom', 'France', 'Poland']);
+        renderCountryBadges();
+        updateAll();
+      };
+
+      document.getElementById('filterReset').onclick = () => {
+        selectedCountries = new Set(['Germany']);
+        renderCountryBadges();
+        updateAll();
+      };
+
+      // Живий пошук по таблиці
+      document.getElementById('searchInput').addEventListener('input', () => {
+        renderTable(getAggregatedCountryData());
+      });
+
+      // Експорт у CSV з урахуванням активних продуктів та країн
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        const aggData = getAggregatedCountryData();
+        const activeList = Object.values(aggData).filter(d => selectedCountries.has(d.country));
+        
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Country,Products,Metric," + periods.join(",") + ",Total\n";
+
+        const prodsStr = Array.from(selectedProducts).join("+");
+
+        activeList.forEach(d => {
+          // Вартість
+          csvContent += `"${d.country}","${prodsStr}",Cost,` + d.costs.map(v => v.toFixed(2)).join(",") + `,${d.totalCost.toFixed(2)}\n`;
+          // Кліки
+          csvContent += `"${d.country}","${prodsStr}",Clicks,` + d.clicks.join(",") + `,${d.totalClicks}\n`;
+          // CPC
+          const cpcs = d.costs.map((c, i) => d.clicks[i] > 0 ? (c / d.clicks[i]).toFixed(2) : "0.00");
+          csvContent += `"${d.country}","${prodsStr}",CPC,` + cpcs.join(",") + `,${d.avgCpc.toFixed(2)}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `google_ads_${prodsStr}_${activeMetric}_summary.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      // Первинний рендер
+      renderCountryBadges();
+      updateAll();
+    });
+  </script>
+</body>
+</html>
