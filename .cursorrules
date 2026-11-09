@@ -6,4 +6,4 @@ When creating or modifying reports:
 - MANDATORY REQUIREMENT 2: Always include an **Export** button with 5 formats: **CSV, EXCEL (.xlsx), PDF, JSON, MD**.
 - Use self-contained HTML with Tailwind CSS CDN, Chart.js CDN, SheetJS CDN, and dark mode theme (`bg-slate-950`).
 - Always register the new report on the root `index.html` hub by adding a card linking to `./[report_name]/`.
-- Commit and push to GitHub `main` branch to trigger live auto-deploy on Cloudflare, Vercel, and Netlify.
+- Commit and push to GitHub `main` branch to trigger live auto-deploy on Vercel and Netlify.

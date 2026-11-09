@@ -1,7 +1,7 @@
 # Інструкції для AI Асистента (AI Prompt / Rules)
 
 Ти працюєш у репозиторії **AI Reports Hub** (`C:\folder\JOB\VS_Code_AL\ai-reports`).
-Цей проєкт містить інтерактивні HTML-звіти та дашборди, які автоматично розгортаються на **Cloudflare, Vercel та Netlify** при пуші в гілку `main`.
+Цей проєкт містить інтерактивні HTML-звіти та дашборди, які автоматично розгортаються на **Vercel та Netlify** при пуші в гілку `main`.
 
 Коли користувач просить тебе **створити новий звіт або оновити існуючий**, неухильно дотримуйся наступних правил:
 
@@ -60,7 +60,6 @@ git add .
 git commit -m "Add report: [назва звіту]"
 git push origin main
 ```
-Після пушу повідоми користувачу 3 посилання на новий звіт:
-* `https://ai-reports.lisitskyi.workers.dev/[slug]/`
+Після пушу повідоми користувачу 2 посилання на новий звіт:
 * `https://ai-reports-lovat.vercel.app/[slug]/`
 * `https://alysytskyi.netlify.app/[slug]/`
